@@ -13,7 +13,7 @@ class DataPemohonPegawai extends Model
 
     protected $fillable = [
         'aplikasi_id',
-        // 'nama_pegawai', // Jika sudah dihapus dari tabel, hapus dari sini juga
+        // 'nama_pegawai', // Jika kolom ini ada di tabel, tambahkan kembali. Berdasarkan error sebelumnya, 'nama_lengkap_pemohon' disimpan di AplikasiKredit
         'usia',
         'masa_kerja_tahun',
         'golongan_jabatan_id', // FK
@@ -21,7 +21,7 @@ class DataPemohonPegawai extends Model
         'gaji_bulanan',
         'jumlah_tanggungan',
         'riwayat_kredit_sebelumnya',
-        // Tambahkan kolom-kolom baru dari migrasi di sini
+        // Kolom-kolom baru dari migrasi
         'nama_perusahaan_kantor',
         'jenis_pekerjaan_detail',
         'pendapatan_lain',

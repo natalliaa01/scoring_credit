@@ -41,7 +41,7 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
         // Untuk admin, direksi, dan kepala_bagian, tidak perlu filter tambahan,
         // karena mereka melihat semua (default query()).
 
-        $aplikasiKredit = $aplikasiKreditQuery->with(['pengaju', 'dataUmkm.sektorEkonomi', 'dataPegawai.golonganJabatan'])
+        $aplikasiKredit = $aplikasiKreditQuery->with(['pengaju', 'dataPemohonUmkm.sektorEkonomi', 'dataPemohonPegawai.golonganJabatan'])
                                               ->latest()
                                               ->get();
 
@@ -120,6 +120,7 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
         $aplikasi = AplikasiKredit::create([
             'user_id_pengaju' => Auth::id(),
             'tanggal_pengajuan' => $validatedData['tanggal_pengajuan'],
+            'jenis_pemohon' => $validatedData['jenis_pemohon'],
             'status_aplikasi' => 'Diajukan',
             'skor_kredit' => null, // Inisialisasi
             'rekomendasi_sistem' => 'Belum Ada', // Inisialisasi
@@ -132,14 +133,14 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
             'status_tempat_tinggal' => $validatedData['status_tempat_tinggal'] ?? null,
             'status_perkawinan' => $validatedData['status_perkawinan'] ?? null,
             'no_handphone' => $validatedData['no_handphone'] ?? null,
-            'no_telepon_rumah' => 'nullable|string|max:255',
-            'no_npwp' => 'nullable|string|max:255',
-            'email_pemohon' => 'nullable|string|email|max:255',
-            'tujuan_penggunaan_kredit' => 'nullable|in:Modal Usaha,Investasi,Konsumsi,Lainnya',
-            'jenis_jaminan_detail' => 'nullable|string|max:255',
-            'nilai_jaminan' => 'nullable|numeric|min:0',
-            'status_kepemilikan_jaminan' => 'nullable|in:Milik Sendiri,Saudara,Orang Tua,Lainnya',
-            'nama_lengkap_pemohon' => ($request->jenis_pemohon === 'umkm') ? ($validatedData['nama_umkm'] ?? null) : ($validatedData['nama_pegawai'] ?? null),
+            'no_telepon_rumah' => $validatedData['no_telepon_rumah'] ?? null,
+            'no_npwp' => $validatedData['no_npwp'] ?? null,
+            'email_pemohon' => $validatedData['email_pemohon'] ?? null,
+            'tujuan_penggunaan_kredit' => $validatedData['tujuan_penggunaan_kredit'] ?? null,
+            'jenis_jaminan_detail' => $validatedData['jenis_jaminan_detail'] ?? null,
+            'nilai_jaminan' => $validatedData['nilai_jaminan'] ?? null,
+            'status_kepemilikan_jaminan' => $validatedData['status_kepemilikan_jaminan'] ?? null,
+            'nama_lengkap_pemohon' => $validatedData['nama_lengkap_pemohon'] ?? null,
         ]);
 
 
@@ -147,17 +148,17 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
         if ($request->jenis_pemohon === 'umkm') {
             DataPemohonUmkm::create([
                 'aplikasi_id' => $aplikasi->id,
-                'nama_umkm' => $validatedData['nama_umkm'],
-                'omzet_usaha' => $validatedData['omzet_usaha'],
-                'lama_usaha_tahun' => $validatedData['lama_usaha_tahun'],
-                'sektor_ekonomi_id' => $validatedData['sektor_ekonomi_id'],
-                'lokasi_usaha' => $validatedData['lokasi_usaha'],
-                'riwayat_pinjaman' => $validatedData['riwayat_pinjaman_umkm'],
-                'jenis_penggunaan_kredit' => $validatedData['jenis_penggunaan_kredit'],
-                'jenis_jaminan' => $validatedData['jenis_jaminan'],
-                'sumber_dana_pengembalian' => 'nullable|in:Dari Usaha Sendiri,Hibah/Pinjaman Lain',
-                'plafond_pengajuan' => $validatedData['plafond_pengajuan'],
-                'jangka_waktu_kredit_bulan' => $validatedData['jangka_waktu_kredit_bulan'],
+                'nama_umkm' => $validatedData['nama_lengkap_pemohon'], // Menggunakan nama_lengkap_pemohon untuk nama_umkm
+                'omzet_usaha' => $validatedData['omzet_usaha'] ?? null,
+                'lama_usaha_tahun' => $validatedData['lama_usaha_tahun'] ?? null,
+                'sektor_ekonomi_id' => $validatedData['sektor_ekonomi_id'] ?? null,
+                'lokasi_usaha' => $validatedData['lokasi_usaha'] ?? null,
+                'riwayat_pinjaman' => $validatedData['riwayat_pinjaman_umkm'] ?? null,
+                'jenis_penggunaan_kredit' => $validatedData['jenis_penggunaan_kredit'] ?? null,
+                'jenis_jaminan' => $validatedData['jenis_jaminan'] ?? null,
+                'sumber_dana_pengembalian' => $validatedData['sumber_dana_pengembalian'] ?? null,
+                'plafond_pengajuan' => $validatedData['plafond_pengajuan'] ?? null,
+                'jangka_waktu_kredit_bulan' => $validatedData['jangka_waktu_kredit_bulan'] ?? null,
                 'tahun_berdiri_usaha' => $validatedData['tahun_berdiri_usaha'] ?? null,
                 'pendapatan_lain' => $validatedData['pendapatan_lain_umkm'] ?? null,
                 'pengeluaran_rutin' => $validatedData['pengeluaran_rutin_umkm'] ?? null,
@@ -168,31 +169,32 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
         } elseif ($request->jenis_pemohon === 'pegawai') {
             DataPemohonPegawai::create([
                 'aplikasi_id' => $aplikasi->id,
-                'nama_pegawai' => $validatedData['nama_pegawai'],
-                'usia' => $validatedData['usia'],
-                'masa_kerja_tahun' => $validatedData['masa_kerja_tahun'],
-                'golongan_jabatan_id' => $validatedData['golongan_jabatan_id'],
-                'status_kepegawaian' => 'nullable|in:Tetap,Kontrak',
-                'gaji_bulanan' => $validatedData['gaji_bulanan'],
-                'jumlah_tanggungan' => $validatedData['jumlah_tanggungan'],
-                'riwayat_kredit_sebelumnya' => $validatedData['riwayat_kredit_sebelumnya_pegawai'],
-                'nama_perusahaan_kantor' => 'nullable|string|max:255',
-                'jenis_pekerjaan_detail' => 'nullable|string|max:255',
-                'pendapatan_lain' => 'nullable|numeric|min:0',
-                'pengeluaran_rutin' => 'nullable|numeric|min:0',
-                'nama_kontak_darurat' => 'nullable|string|max:255',
-                'hubungan_kontak_darurat' => 'nullable|in:Orang Tua,Saudara,Adik,Kakak,Teman,Lainnya',
-                'no_telepon_kontak_darurat' => 'nullable|string|max:255',
+                'nama_pegawai' => $validatedData['nama_lengkap_pemohon'], // Menggunakan nama_lengkap_pemohon untuk nama_pegawai
+                'usia' => $validatedData['usia'] ?? null,
+                'masa_kerja_tahun' => $validatedData['masa_kerja_tahun'] ?? null,
+                'golongan_jabatan_id' => $validatedData['golongan_jabatan_id'] ?? null,
+                'status_kepegawaian' => $validatedData['status_kepegawaian'] ?? null,
+                'gaji_bulanan' => $validatedData['gaji_bulanan'] ?? null,
+                'jumlah_tanggungan' => $validatedData['jumlah_tanggungan'] ?? null,
+                'riwayat_kredit_sebelumnya' => $validatedData['riwayat_kredit_sebelumnya_pegawai'] ?? null,
+                'nama_perusahaan_kantor' => $validatedData['nama_perusahaan_kantor'] ?? null,
+                'jenis_pekerjaan_detail' => $validatedData['jenis_pekerjaan_detail'] ?? null,
+                'pendapatan_lain' => $validatedData['pendapatan_lain_pegawai'] ?? null,
+                'pengeluaran_rutin' => $validatedData['pengeluaran_rutin_pegawai'] ?? null,
+                'nama_kontak_darurat' => $validatedData['nama_kontak_darurat_pegawai'] ?? null,
+                'hubungan_kontak_darurat' => $validatedData['hubungan_kontak_darurat_pegawai'] ?? null,
+                'no_telepon_kontak_darurat' => $validatedData['no_telepon_kontak_darurat_pegawai'] ?? null,
             ]);
         }
 
-        return redirect()->route('aplikasi-kredit.index')->with('success', 'Aplikasi kredit berhasil diajukan.');
+        // Redirect ke halaman daftar aplikasi kredit dengan pesan sukses
+        return redirect()->route('aplikasi-kredit.index')->with('success', 'Aplikasi kredit berhasil diajukan!');
     }
 
     public function show(AplikasiKredit $aplikasiKredit)
     {
         $this->authorize('view', $aplikasiKredit);
-        $aplikasiKredit->load(['pengaju', 'direksiPenyetuju', 'dataUmkm.sektorEkonomi', 'dataPegawai.golonganJabatan']);
+        $aplikasiKredit->load(['pengaju', 'direksiPenyetuju', 'dataPemohonUmkm.sektorEkonomi', 'dataPemohonPegawai.golonganJabatan']);
         return view('aplikasi-kredit.show', compact('aplikasiKredit'));
     }
 
@@ -211,6 +213,7 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
         $rules = [
             'tanggal_pengajuan' => 'required|date',
             'jenis_pemohon' => ['required', Rule::in('umkm', 'pegawai')], // tidak bisa diubah setelah dibuat
+            'nama_lengkap_pemohon' => 'required|string|max:255',
             'no_ktp' => ['required', 'string', 'max:255', Rule::unique('aplikasi_kredit', 'no_ktp')->ignore($aplikasiKredit->id)],
             'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
             'tanggal_lahir' => 'nullable|date',
@@ -266,6 +269,7 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
         // Validasi berdasarkan jenis pemohon
         if ($aplikasiKredit->dataUmkm) { // Jika ini aplikasi UMKM
             $rules = array_merge($rules, [
+                'nama_umkm' => 'required|string|max:255', // Validasi nama UMKM
                 // Validasi khusus UMKM
                 'omzet_usaha' => 'required|numeric|min:0',
                 'lama_usaha_tahun' => 'required|integer|min:0',
@@ -286,6 +290,7 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
             ]);
         } elseif ($aplikasiKredit->dataPegawai) { // Jika ini aplikasi Pegawai
             $rules = array_merge($rules, [
+                'nama_pegawai' => 'required|string|max:255', // Validasi nama Pegawai
                 // Validasi khusus Pegawai
                 'usia' => 'required|integer|min:18|max:65',
                 'masa_kerja_tahun' => 'required|integer|min:0',
@@ -294,6 +299,13 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
                 'gaji_bulanan' => 'required|numeric|min:0',
                 'jumlah_tanggungan' => 'required|integer|min:0',
                 'riwayat_kredit_sebelumnya_pegawai' => 'required|in:Pernah Macet,Tidak Pernah,Lain-lain',
+                'nama_perusahaan_kantor' => 'nullable|string|max:255',
+                'jenis_pekerjaan_detail' => 'nullable|string|max:255',
+                'pendapatan_lain' => 'nullable|numeric|min:0',
+                'pengeluaran_rutin' => 'nullable|numeric|min:0',
+                'nama_kontak_darurat' => 'nullable|string|max:255',
+                'hubungan_kontak_darurat' => 'nullable|in:Orang Tua,Saudara,Adik,Kakak,Teman,Lainnya',
+                'no_telepon_kontak_darurat' => 'nullable|string|max:255',
             ]);
         }
 
@@ -312,30 +324,30 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
             'status_perkawinan' => $validatedData['status_perkawinan'] ?? null,
             'no_handphone' => $validatedData['no_handphone'] ?? null,
             'no_telepon_rumah' => $validatedData['no_telepon_rumah'] ?? null,
-            'no_npwp' => 'nullable|string|max:255',
-            'email_pemohon' => 'nullable|string|email|max:255',
-            'tujuan_penggunaan_kredit' => 'nullable|in:Modal Usaha,Investasi,Konsumsi,Lainnya',
-            'jenis_jaminan_detail' => 'nullable|string|max:255',
-            'nilai_jaminan' => 'nullable|numeric|min:0',
-            'status_kepemilikan_jaminan' => 'nullable|in:Milik Sendiri,Saudara,Orang Tua,Lainnya',
-            // 'nama_lengkap_pemohon' akan diupdate dari nama_umkm atau nama_pegawai
-            'nama_lengkap_pemohon' => ($aplikasiKredit->dataUmkm) ? ($validatedData['nama_umkm'] ?? null) : ($validatedData['nama_pegawai'] ?? null),
+            'no_npwp' => $validatedData['no_npwp'] ?? null,
+            'email_pemohon' => $validatedData['email_pemohon'] ?? null,
+            'tujuan_penggunaan_kredit' => $validatedData['tujuan_penggunaan_kredit'] ?? null,
+            'jenis_jaminan_detail' => $validatedData['jenis_jaminan_detail'] ?? null,
+            'nilai_jaminan' => $validatedData['nilai_jaminan'] ?? null,
+            'status_kepemilikan_jaminan' => $validatedData['status_kepemilikan_jaminan'] ?? null,
+            'nama_lengkap_pemohon' => $validatedData['nama_lengkap_pemohon'] ?? null,
         ]);
 
 
         // Update data di tabel pemohon (UMKM atau Pegawai)
         if ($aplikasiKredit->dataUmkm) {
             $aplikasiKredit->dataUmkm->update([
-                'omzet_usaha' => $validatedData['omzet_usaha'],
-                'lama_usaha_tahun' => $validatedData['lama_usaha_tahun'],
-                'sektor_ekonomi_id' => $validatedData['sektor_ekonomi_id'],
-                'lokasi_usaha' => $validatedData['lokasi_usaha'],
-                'riwayat_pinjaman' => $validatedData['riwayat_pinjaman_umkm'],
-                'jenis_penggunaan_kredit' => $validatedData['jenis_penggunaan_kredit'],
-                'jenis_jaminan' => $validatedData['jenis_jaminan'],
-                'sumber_dana_pengembalian' => $validatedData['sumber_dana_pengembalian'],
-                'plafond_pengajuan' => $validatedData['plafond_pengajuan'],
-                'jangka_waktu_kredit_bulan' => $validatedData['jangka_waktu_kredit_bulan'],
+                'nama_umkm' => $validatedData['nama_umkm'] ?? null,
+                'omzet_usaha' => $validatedData['omzet_usaha'] ?? null,
+                'lama_usaha_tahun' => $validatedData['lama_usaha_tahun'] ?? null,
+                'sektor_ekonomi_id' => $validatedData['sektor_ekonomi_id'] ?? null,
+                'lokasi_usaha' => $validatedData['lokasi_usaha'] ?? null,
+                'riwayat_pinjaman' => $validatedData['riwayat_pinjaman_umkm'] ?? null,
+                'jenis_penggunaan_kredit' => $validatedData['jenis_penggunaan_kredit'] ?? null,
+                'jenis_jaminan' => $validatedData['jenis_jaminan'] ?? null,
+                'sumber_dana_pengembalian' => $validatedData['sumber_dana_pengembalian'] ?? null,
+                'plafond_pengajuan' => $validatedData['plafond_pengajuan'] ?? null,
+                'jangka_waktu_kredit_bulan' => $validatedData['jangka_waktu_kredit_bulan'] ?? null,
                 'tahun_berdiri_usaha' => $validatedData['tahun_berdiri_usaha'] ?? null,
                 'pendapatan_lain' => $validatedData['pendapatan_lain_umkm'] ?? null,
                 'pengeluaran_rutin' => $validatedData['pengeluaran_rutin_umkm'] ?? null,
@@ -345,13 +357,14 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
             ]);
         } elseif ($aplikasiKredit->dataPegawai) {
             $aplikasiKredit->dataPegawai->update([
-                'usia' => $validatedData['usia'],
-                'masa_kerja_tahun' => $validatedData['masa_kerja_tahun'],
-                'golongan_jabatan_id' => $validatedData['golongan_jabatan_id'],
-                'status_kepegawaian' => $validatedData['status_kepegawaian'],
-                'gaji_bulanan' => $validatedData['gaji_bulanan'],
-                'jumlah_tanggungan' => $validatedData['jumlah_tanggungan'],
-                'riwayat_kredit_sebelumnya' => $validatedData['riwayat_kredit_sebelumnya_pegawai'],
+                'nama_pegawai' => $validatedData['nama_pegawai'] ?? null,
+                'usia' => $validatedData['usia'] ?? null,
+                'masa_kerja_tahun' => $validatedData['masa_kerja_tahun'] ?? null,
+                'golongan_jabatan_id' => $validatedData['golongan_jabatan_id'] ?? null,
+                'status_kepegawaian' => $validatedData['status_kepegawaian'] ?? null,
+                'gaji_bulanan' => $validatedData['gaji_bulanan'] ?? null,
+                'jumlah_tanggungan' => $validatedData['jumlah_tanggungan'] ?? null,
+                'riwayat_kredit_sebelumnya' => $validatedData['riwayat_kredit_sebelumnya_pegawai'] ?? null,
                 'nama_perusahaan_kantor' => $validatedData['nama_perusahaan_kantor'] ?? null,
                 'jenis_pekerjaan_detail' => $validatedData['jenis_pekerjaan_detail'] ?? null,
                 'pendapatan_lain' => $validatedData['pendapatan_lain_pegawai'] ?? null,

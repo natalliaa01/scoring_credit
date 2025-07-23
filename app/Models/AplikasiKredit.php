@@ -13,10 +13,16 @@ class AplikasiKredit extends Model
 
     protected $fillable = [
         'user_id_pengaju',
+        'tanggal_pengajuan',
+        'skor_kredit',
+        'rekomendasi_sistem',
+        'status_aplikasi',
         'direksi_id_persetujuan',
+        'tanggal_persetujuan_direksi',
+        'catatan_direksi',
+        'catatan_kepala_bagian',
         'nama_lengkap_pemohon',
         'no_ktp',
-        'tanggal_pengajuan',
         'jenis_kelamin',
         'tanggal_lahir',
         'tempat_lahir',
@@ -33,34 +39,32 @@ class AplikasiKredit extends Model
         'nilai_jaminan',
         'status_kepemilikan_jaminan',
         'jenis_pemohon',
-        'skor_kredit',
-        'rekomendasi_sistem',
-        'status_aplikasi',
-        'tanggal_persetujuan_direksi',
-        'catatan_direksi',
     ];
 
-    // Relasi ke DataPemohonUmkm
-    public function dataPemohonUmkm()
-    {
-        return $this->hasOne(DataPemohonUmkm::class, 'aplikasi_id');
-    }
+    // Tambahkan properti $casts untuk mengonversi kolom tanggal ke objek Carbon
+    protected $casts = [
+        'tanggal_pengajuan' => 'date',
+        'tanggal_lahir' => 'date',
+        'tanggal_persetujuan_direksi' => 'datetime', // Jika ini juga tanggal
+    ];
 
-    // Relasi ke DataPemohonPegawai
-    public function dataPemohonPegawai()
-    {
-        return $this->hasOne(DataPemohonPegawai::class, 'aplikasi_id');
-    }
-
-    // Relasi ke User yang mengajukan aplikasi
     public function pengaju()
     {
         return $this->belongsTo(User::class, 'user_id_pengaju');
     }
 
-    // Relasi ke User yang menyetujui (Direksi)
     public function direksiPenyetuju()
     {
         return $this->belongsTo(User::class, 'direksi_id_persetujuan');
+    }
+
+    public function dataPemohonUmkm()
+    {
+        return $this->hasOne(DataPemohonUmkm::class, 'aplikasi_id');
+    }
+
+    public function dataPemohonPegawai()
+    {
+        return $this->hasOne(DataPemohonPegawai::class, 'aplikasi_id');
     }
 }

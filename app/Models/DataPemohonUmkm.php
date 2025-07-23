@@ -13,7 +13,7 @@ class DataPemohonUmkm extends Model
 
     protected $fillable = [
         'aplikasi_id',
-        // 'nama_umkm', // Jika sudah dihapus dari tabel, hapus dari sini juga
+        // 'nama_umkm', // Jika kolom ini ada di tabel, tambahkan kembali. Berdasarkan error sebelumnya, 'nama_lengkap_pemohon' disimpan di AplikasiKredit
         'omzet_usaha',
         'lama_usaha_tahun',
         'sektor_ekonomi_id', // FK
@@ -24,7 +24,7 @@ class DataPemohonUmkm extends Model
         'sumber_dana_pengembalian',
         'plafond_pengajuan',
         'jangka_waktu_kredit_bulan',
-        // Tambahkan kolom-kolom baru dari migrasi di sini
+        // Kolom-kolom baru dari migrasi
         'tahun_berdiri_usaha',
         'pendapatan_lain',
         'pengeluaran_rutin',
