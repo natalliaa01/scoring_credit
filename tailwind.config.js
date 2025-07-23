@@ -10,17 +10,18 @@ export default {
     theme: {
         extend: {
             colors: {
-                'bpr-blue-dark': '#1D2A8E', // Contoh biru tua dari logo
-                'bpr-blue-medium': '#2A3B9B', // Contoh biru sedang dari logo
-                'bpr-red-accent': '#E31E24', // Contoh merah dari logo
-                // Anda bisa tambahkan gradasi abu-abu jika perlu:
-                'bpr-gray-light': '#F8F8F8',
-                'bpr-gray-medium': '#E0E0E0',
+                'bpr-blue-dark': '#1D2A8E', // Biru tua dari logo
+                'bpr-blue-medium': '#2A3B9B', // Biru sedang dari logo
+                'bpr-gold-accent': '#C0A04C', // Aksen Emas/Bronze yang lebih elegan
+                'bpr-gray-light': '#F8F8F8', // Abu-abu sangat terang untuk background section
+                'bpr-gray-medium': '#E0E0E0', // Abu-abu untuk border/divider
                 'bpr-text-dark': '#333333', // Warna teks umum
+                'bpr-text-light': '#6B7280', // Warna teks sekunder/deskripsi
+                'bpr-background-light': '#e3f2fd', // Warna latar belakang baru yang diminta
             },
             fontFamily: {
-                // Di sini Anda bisa mendefinisikan font kustom
-                // Contoh: 'sans': ['Inter', 'sans-serif'],
+                'sans': ['Poppins', 'sans-serif'], // Menggunakan Poppins sebagai font utama
+                'heading': ['Poppins', 'sans-serif'], // Menggunakan Poppins juga untuk judul
             },
         },
     },

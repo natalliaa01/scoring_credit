@@ -19,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Pastikan tidak ada logika $this->routes() di sini.
+        // Bagian ini biasanya kosong atau hanya berisi service binding sederhana.
     }
 }

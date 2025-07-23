@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role; // Import Role model
 
 class UserSeeder extends Seeder
 {
@@ -14,51 +14,59 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // NONAKTIFKAN FOREIGN KEY CHECKS SEMENTARA
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        // Pastikan peran sudah ada sebelum menetapkannya
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $direksiRole = Role::firstOrCreate(['name' => 'direksi']);
+        $kepalaBagianRole = Role::firstOrCreate(['name' => 'kepala_bagian']); // Pastikan nama peran ini konsisten
+        $tellerRole = Role::firstOrCreate(['name' => 'teller']);
 
-        DB::table('users')->truncate();
+        // Buat atau temukan user Admin dan berikan peran
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('password'), // Ganti dengan password yang kuat di produksi
+                'email_verified_at' => now(),
+            ]
+        );
+        $admin->assignRole($adminRole);
 
-        // AKTIFKAN FOREIGN KEY CHECKS KEMBALI SETELAH TRUNCATE SELESAI
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        // Buat atau temukan user Direksi dan berikan peran
+        $direksi = User::firstOrCreate(
+            ['email' => 'direksi@example.com'],
+            [
+                'name' => 'Direksi User',
+                'password' => Hash::make('password'), // Ganti dengan password yang kuat di produksi
+                'email_verified_at' => now(),
+            ]
+        );
+        $direksi->assignRole($direksiRole);
 
-        DB::table('users')->insert([
+        // Buat atau temukan user Kepala Bagian Kredit dan berikan peran
+        $kepalaBagian = User::firstOrCreate(
+            ['email' => 'kabag@example.com'],
             [
-                'name' => 'Admin Utama',
-                'email' => 'admin@msa.com',
-                'password' => Hash::make('admin'), // Password default: 'password'
-                'role' => 'admin',
+                'name' => 'Kepala Bagian Kredit User',
+                'password' => Hash::make('password'), // Ganti dengan password yang kuat di produksi
                 'email_verified_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+            ]
+        );
+        $kepalaBagian->assignRole($kepalaBagianRole);
+
+        // Buat atau temukan user Teller dan berikan peran
+        $teller = User::firstOrCreate(
+            ['email' => 'teller@example.com'],
             [
-                'name' => 'Direksi Utama',
-                'email' => 'direksi@msa.com',
-                'password' => Hash::make('direksi'),
-                'role' => 'direksi',
+                'name' => 'Teller User',
+                'password' => Hash::make('password'), // Ganti dengan password yang kuat di produksi
                 'email_verified_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Kepala Bagian Kredit',
-                'email' => 'kabag@msa.com',
-                'password' => Hash::make('kabag'),
-                'role' => 'kepala_bagian',
-                'email_verified_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Teller Cabang A',
-                'email' => 'teller@msa.com',
-                'password' => Hash::make('teller'),
-                'role' => 'teller',
-                'email_verified_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+            ]
+        );
+        $teller->assignRole($tellerRole);
+
+        // Anda bisa membuat user lain sesuai kebutuhan
+        // User::factory(10)->create()->each(function ($user) {
+        //     $user->assignRole('teller'); // Contoh: semua user factory adalah teller
+        // });
     }
 }

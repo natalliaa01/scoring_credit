@@ -2,20 +2,20 @@
 
 namespace App\Models;
 
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles; // <-- TAMBAHKAN BARIS INI
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles; // <-- TAMBAHKAN HasRoles DI SINI
 
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role', // PASTIKAN KOLOM 'role' ADA DI SINI
+        'role',
     ];
 
     protected $hidden = [
@@ -31,15 +31,28 @@ class User extends Authenticatable
         ];
     }
 
-    // Relasi: User bisa mengajukan banyak AplikasiKredit
     public function aplikasiKreditDiajukan()
     {
         return $this->hasMany(AplikasiKredit::class, 'user_id_pengaju');
     }
 
-    // Relasi: User bisa menjadi direksi yang menyetujui banyak AplikasiKredit
     public function aplikasiKreditDisetujui()
     {
         return $this->hasMany(AplikasiKredit::class, 'direksi_id_persetujuan');
+    }
+
+    public function aplikasiKreditDiterima()
+    {
+        return $this->hasMany(AplikasiKredit::class, 'direksi_id_penerimaan');
+    }
+
+    public function aplikasiKreditDitolak()
+    {
+        return $this->hasMany(AplikasiKredit::class, 'direksi_id_penolakan');
+    }
+
+    public function aplikasiKreditDibatalkan()
+    {
+        return $this->hasMany(AplikasiKredit::class, 'direksi_id_pembatalan');
     }
 }

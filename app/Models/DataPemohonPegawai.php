@@ -13,7 +13,7 @@ class DataPemohonPegawai extends Model
 
     protected $fillable = [
         'aplikasi_id',
-        'nama_pegawai',
+        // 'nama_pegawai', // Jika sudah dihapus dari tabel, hapus dari sini juga
         'usia',
         'masa_kerja_tahun',
         'golongan_jabatan_id', // FK
@@ -21,15 +21,21 @@ class DataPemohonPegawai extends Model
         'gaji_bulanan',
         'jumlah_tanggungan',
         'riwayat_kredit_sebelumnya',
+        // Tambahkan kolom-kolom baru dari migrasi di sini
+        'nama_perusahaan_kantor',
+        'jenis_pekerjaan_detail',
+        'pendapatan_lain',
+        'pengeluaran_rutin',
+        'nama_kontak_darurat',
+        'hubungan_kontak_darurat',
+        'no_telepon_kontak_darurat',
     ];
 
-    // Relasi: Setiap data pemohon Pegawai milik satu AplikasiKredit
     public function aplikasiKredit()
     {
         return $this->belongsTo(AplikasiKredit::class, 'aplikasi_id');
     }
 
-    // Relasi: Setiap data pemohon Pegawai memiliki satu KategoriGolonganJabatan
     public function golonganJabatan()
     {
         return $this->belongsTo(KategoriGolonganJabatan::class, 'golongan_jabatan_id');

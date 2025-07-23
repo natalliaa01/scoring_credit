@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route untuk halaman selamat datang
+// Mengarahkan root URL langsung ke halaman login
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login'); // Mengarahkan ke halaman login
 });
 
 // Grup rute yang memerlukan autentikasi dan verifikasi email
@@ -29,9 +29,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // --- ROUTE UNTUK APLIKASI KREDIT ---
     // Menggunakan resource route untuk operasi CRUD standar (index, create, store, show, edit, update, destroy)
+    // Policy yang terdaftar di AuthServiceProvider dan authorizeResource di controller akan menangani otorisasi
     Route::resource('aplikasi-kredit', AplikasiKreditController::class);
 
     // Route khusus untuk persetujuan Direksi dan penerusan ke Direksi
+    // Otorisasi untuk rute ini akan ditangani oleh Policy yang dipanggil secara eksplisit di controller
     Route::post('aplikasi-kredit/{aplikasi_kredit}/forward-to-direksi', [AplikasiKreditController::class, 'forwardToDireksi'])->name('aplikasi-kredit.forward-to-direksi');
     Route::post('aplikasi-kredit/{aplikasi_kredit}/approve', [AplikasiKreditController::class, 'approve'])->name('aplikasi-kredit.approve');
     Route::post('aplikasi-kredit/{aplikasi_kredit}/reject', [AplikasiKreditController::class, 'reject'])->name('aplikasi-kredit.reject');

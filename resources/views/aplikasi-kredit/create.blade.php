@@ -1,206 +1,178 @@
 <x-app-layout>
     <x-slot name="header">
-        {{-- Tidak perlu header di sini karena sudah dihapus global di app.blade.php --}}
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Ajukan Aplikasi Kredit Baru') }}
+        </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                <h3 class="text-2xl font-bold mb-6 text-bpr-blue-dark">{{ __('Ajukan Aplikasi Kredit Baru') }}</h3>
+    <div class="py-12 bg-gray-100 min-h-screen flex items-center justify-center">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 w-full">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-8 transform transition-all duration-300 hover:shadow-2xl">
+                <div class="text-center mb-8">
+                    <h3 class="text-3xl font-bold text-indigo-700 mb-2">Formulir Pengajuan Kredit</h3>
+                    <p class="text-gray-600">Isi data pemohon dengan lengkap dan akurat.</p>
+                </div>
 
-                <form method="POST" action="{{ route('aplikasi-kredit.store') }}" x-data="{ jenisPemohon: 'umkm' }">
+                <x-auth-session-status class="mb-4" :status="session('status')" />
+
+                {{-- Pastikan x-data ada di sini dan Alpine.js dimuat dengan benar --}}
+                <form method="POST" action="{{ route('aplikasi-kredit.store') }}" x-data="{ jenisPemohon: 'umkm', isSubmitting: false }" @submit.prevent="isSubmitting = true; $el.submit()">
                     @csrf
 
-                    <div class="mb-4">
-                        <x-input-label for="tanggal_pengajuan" :value="__('Tanggal Pengajuan')" />
-                        <x-text-input id="tanggal_pengajuan" class="block mt-1 w-full" type="date" name="tanggal_pengajuan" :value="old('tanggal_pengajuan', date('Y-m-d'))" required autofocus />
-                        <x-input-error :messages="$errors->get('tanggal_pengajuan')" class="mt-2" />
-                    </div>
-
+                    <!-- Jenis Pemohon -->
                     <div class="mb-6">
-                        <x-input-label :value="__('Jenis Pemohon')" />
-                        <div class="mt-2 space-y-2">
-                            <label for="jenis_pemohon_umkm" class="inline-flex items-center">
-                                <input id="jenis_pemohon_umkm" type="radio" class="rounded border-gray-300 text-bpr-blue-dark shadow-sm focus:ring-bpr-blue-dark" name="jenis_pemohon" value="umkm" x-model="jenisPemohon" checked>
-                                <span class="ms-2 text-sm text-gray-600">{{ __('UMKM / Pengusaha') }}</span>
+                        <x-input-label for="jenis_pemohon" :value="__('Jenis Pemohon')" class="text-lg font-medium text-gray-700" />
+                        <div class="mt-2 flex space-x-4">
+                            <label for="jenis_pemohon_umkm" class="inline-flex items-center cursor-pointer">
+                                <input id="jenis_pemohon_umkm" type="radio" name="jenis_pemohon" value="umkm" x-model="jenisPemohon" class="form-radio text-indigo-600 focus:ring-indigo-500 rounded-full">
+                                <span class="ml-2 text-gray-800">UMKM / Pengusaha</span>
                             </label>
-                            <label for="jenis_pemohon_pegawai" class="inline-flex items-center ms-4">
-                                <input id="jenis_pemohon_pegawai" type="radio" class="rounded border-gray-300 text-bpr-blue-dark shadow-sm focus:ring-bpr-blue-dark" name="jenis_pemohon" value="pegawai" x-model="jenisPemohon">
-                                <span class="ms-2 text-sm text-gray-600">{{ __('Pegawai') }}</span>
+                            <label for="jenis_pemohon_pegawai" class="inline-flex items-center cursor-pointer">
+                                <input id="jenis_pemohon_pegawai" type="radio" name="jenis_pemohon" value="pegawai" x-model="jenisPemohon" class="form-radio text-indigo-600 focus:ring-indigo-500 rounded-full">
+                                <span class="ml-2 text-gray-800">Pegawai</span>
                             </label>
                         </div>
-                        <x-input-error :messages="$errors->get('jenis_pemohon')" class="mt-2" />
+                        <x-input-error class="mt-2" :messages="$errors->get('jenis_pemohon')" />
                     </div>
 
-                    <div x-show="jenisPemohon === 'umkm'" class="bg-bpr-gray-light p-6 rounded-lg shadow-inner mb-6">
-                        <h4 class="text-xl font-bold mb-4 text-bpr-blue-medium">{{ __('Data UMKM / Pengusaha') }}</h4>
-
-                        <div class="mb-4">
-                            <x-input-label for="nama_umkm" :value="__('Nama UMKM / Pengusaha')" />
-                            <x-text-input id="nama_umkm" class="block mt-1 w-full" type="text" name="nama_umkm" :value="old('nama_umkm')" />
-                            <x-input-error :messages="$errors->get('nama_umkm')" class="mt-2" />
+                    <!-- Bagian Data Umum Pemohon -->
+                    <div class="bg-indigo-50 p-6 rounded-lg shadow-inner mb-8">
+                        <h4 class="text-xl font-semibold text-indigo-800 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-2 text-indigo-600">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                            </svg>
+                            Data Umum Pemohon
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <x-input-label for="nama_lengkap_pemohon" :value="__('Nama Lengkap Pemohon')" />
+                                <x-text-input id="nama_lengkap_pemohon" class="block mt-1 w-full" type="text" name="nama_lengkap_pemohon" :value="old('nama_lengkap_pemohon')" required autofocus autocomplete="name" />
+                                <x-input-error class="mt-2" :messages="$errors->get('nama_lengkap_pemohon')" />
+                            </div>
+                            <div>
+                                <x-input-label for="no_ktp" :value="__('Nomor KTP')" />
+                                <x-text-input id="no_ktp" class="block mt-1 w-full" type="text" name="no_ktp" :value="old('no_ktp')" required autocomplete="off" />
+                                <x-input-error class="mt-2" :messages="$errors->get('no_ktp')" />
+                            </div>
+                            <div>
+                                <x-input-label for="tanggal_pengajuan" :value="__('Tanggal Pengajuan')" />
+                                <x-text-input id="tanggal_pengajuan" class="block mt-1 w-full" type="date" name="tanggal_pengajuan" :value="old('tanggal_pengajuan', date('Y-m-d'))" required />
+                                <x-input-error class="mt-2" :messages="$errors->get('tanggal_pengajuan')" />
+                            </div>
+                            <div>
+                                <x-input-label for="jenis_kelamin" :value="__('Jenis Kelamin')" />
+                                <select id="jenis_kelamin" name="jenis_kelamin" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">
+                                    <option value="">Pilih Jenis Kelamin</option>
+                                    <option value="Laki-laki" {{ old('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                                    <option value="Perempuan" {{ old('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                                </select>
+                                <x-input-error class="mt-2" :messages="$errors->get('jenis_kelamin')" />
+                            </div>
+                            <div>
+                                <x-input-label for="tanggal_lahir" :value="__('Tanggal Lahir')" />
+                                <x-text-input id="tanggal_lahir" class="block mt-1 w-full" type="date" name="tanggal_lahir" :value="old('tanggal_lahir')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('tanggal_lahir')" />
+                            </div>
+                            <div>
+                                <x-input-label for="tempat_lahir" :value="__('Tempat Lahir')" />
+                                <x-text-input id="tempat_lahir" class="block mt-1 w-full" type="text" name="tempat_lahir" :value="old('tempat_lahir')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('tempat_lahir')" />
+                            </div>
+                            <div>
+                                <x-input-label for="alamat_ktp" :value="__('Alamat KTP')" />
+                                <x-text-input id="alamat_ktp" class="block mt-1 w-full" type="text" name="alamat_ktp" :value="old('alamat_ktp')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('alamat_ktp')" />
+                            </div>
+                            <div>
+                                <x-input-label for="alamat_tinggal" :value="__('Alamat Tinggal')" />
+                                <x-text-input id="alamat_tinggal" class="block mt-1 w-full" type="text" name="alamat_tinggal" :value="old('alamat_tinggal')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('alamat_tinggal')" />
+                            </div>
+                            <div>
+                                <x-input-label for="status_tempat_tinggal" :value="__('Status Tempat Tinggal')" />
+                                <select id="status_tempat_tinggal" name="status_tempat_tinggal" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">
+                                    <option value="">Pilih Status</option>
+                                    <option value="Milik Sendiri" {{ old('status_tempat_tinggal') == 'Milik Sendiri' ? 'selected' : '' }}>Milik Sendiri</option>
+                                    <option value="Sewa" {{ old('status_tempat_tinggal') == 'Sewa' ? 'selected' : '' }}>Sewa</option>
+                                    <option value="Kos" {{ old('status_tempat_tinggal') == 'Kos' ? 'selected' : '' }}>Kos</option>
+                                    <option value="Dinas" {{ old('status_tempat_tinggal') == 'Dinas' ? 'selected' : '' }}>Dinas</option>
+                                    <option value="Lainnya" {{ old('status_tempat_tinggal') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
+                                </select>
+                                <x-input-error class="mt-2" :messages="$errors->get('status_tempat_tinggal')" />
+                            </div>
+                            <div>
+                                <x-input-label for="status_perkawinan" :value="__('Status Perkawinan')" />
+                                <select id="status_perkawinan" name="status_perkawinan" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">
+                                    <option value="">Pilih Status</option>
+                                    <option value="Belum Kawin" {{ old('status_perkawinan') == 'Belum Kawin' ? 'selected' : '' }}>Belum Kawin</option>
+                                    <option value="Kawin" {{ old('status_perkawinan') == 'Kawin' ? 'selected' : '' }}>Kawin</option>
+                                    <option value="Janda" {{ old('status_perkawinan') == 'Janda' ? 'selected' : '' }}>Janda</option>
+                                    <option value="Duda" {{ old('status_perkawinan') == 'Duda' ? 'selected' : '' }}>Duda</option>
+                                </select>
+                                <x-input-error class="mt-2" :messages="$errors->get('status_perkawinan')" />
+                            </div>
+                            <div>
+                                <x-input-label for="no_handphone" :value="__('Nomor Handphone')" />
+                                <x-text-input id="no_handphone" class="block mt-1 w-full" type="text" name="no_handphone" :value="old('no_handphone')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('no_handphone')" />
+                            </div>
+                            <div>
+                                <x-input-label for="no_telepon_rumah" :value="__('Nomor Telepon Rumah')" />
+                                <x-text-input id="no_telepon_rumah" class="block mt-1 w-full" type="text" name="no_telepon_rumah" :value="old('no_telepon_rumah')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('no_telepon_rumah')" />
+                            </div>
+                            <div>
+                                <x-input-label for="no_npwp" :value="__('Nomor NPWP')" />
+                                <x-text-input id="no_npwp" class="block mt-1 w-full" type="text" name="no_npwp" :value="old('no_npwp')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('no_npwp')" />
+                            </div>
+                            <div>
+                                <x-input-label for="email_pemohon" :value="__('Email Pemohon')" />
+                                <x-text-input id="email_pemohon" class="block mt-1 w-full" type="email" name="email_pemohon" :value="old('email_pemohon')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('email_pemohon')" />
+                            </div>
+                            <div>
+                                <x-input-label for="tujuan_penggunaan_kredit" :value="__('Tujuan Penggunaan Kredit')" />
+                                <select id="tujuan_penggunaan_kredit" name="tujuan_penggunaan_kredit" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">
+                                    <option value="">Pilih Tujuan</option>
+                                    <option value="Modal Usaha" {{ old('tujuan_penggunaan_kredit') == 'Modal Usaha' ? 'selected' : '' }}>Modal Usaha</option>
+                                    <option value="Investasi" {{ old('tujuan_penggunaan_kredit') == 'Investasi' ? 'selected' : '' }}>Investasi</option>
+                                    <option value="Konsumsi" {{ old('tujuan_penggunaan_kredit') == 'Konsumsi' ? 'selected' : '' }}>Konsumsi</option>
+                                    <option value="Lainnya" {{ old('tujuan_penggunaan_kredit') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
+                                </select>
+                                <x-input-error class="mt-2" :messages="$errors->get('tujuan_penggunaan_kredit')" />
+                            </div>
+                            <div>
+                                <x-input-label for="jenis_jaminan_detail" :value="__('Jenis Jaminan Detail')" />
+                                <x-text-input id="jenis_jaminan_detail" class="block mt-1 w-full" type="text" name="jenis_jaminan_detail" :value="old('jenis_jaminan_detail')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('jenis_jaminan_detail')" />
+                            </div>
+                            <div>
+                                <x-input-label for="nilai_jaminan" :value="__('Nilai Jaminan')" />
+                                <x-text-input id="nilai_jaminan" class="block mt-1 w-full" type="number" step="0.01" name="nilai_jaminan" :value="old('nilai_jaminan')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('nilai_jaminan')" />
+                            </div>
+                            <div>
+                                <x-input-label for="status_kepemilikan_jaminan" :value="__('Status Kepemilikan Jaminan')" />
+                                <select id="status_kepemilikan_jaminan" name="status_kepemilikan_jaminan" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">
+                                    <option value="">Pilih Status</option>
+                                    <option value="Milik Sendiri" {{ old('status_kepemilikan_jaminan') == 'Milik Sendiri' ? 'selected' : '' }}>Milik Sendiri</option>
+                                    <option value="Saudara" {{ old('status_kepemilikan_jaminan') == 'Saudara' ? 'selected' : '' }}>Saudara</option>
+                                    <option value="Orang Tua" {{ old('status_kepemilikan_jaminan') == 'Orang Tua' ? 'selected' : '' }}>Orang Tua</option>
+                                    <option value="Lainnya" {{ old('status_kepemilikan_jaminan') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
+                                </select>
+                                <x-input-error class="mt-2" :messages="$errors->get('status_kepemilikan_jaminan')" />
+                            </div>
                         </div>
 
-                        <div class="mb-4">
-                            <x-input-label for="omzet_usaha" :value="__('Omzet Usaha (Per Bulan)')" />
-                            <x-text-input id="omzet_usaha" class="block mt-1 w-full" type="number" name="omzet_usaha" :value="old('omzet_usaha')" min="0" />
-                            <x-input-error :messages="$errors->get('omzet_usaha')" class="mt-2" />
+                        <!-- Tombol Submit -->
+                        <div class="flex items-center justify-end mt-4">
+                            <x-primary-button>
+                                {{ __('Ajukan Aplikasi') }}
+                            </x-primary-button>
                         </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="lama_usaha_tahun" :value="__('Lama Usaha (Tahun)')" />
-                            <x-text-input id="lama_usaha_tahun" class="block mt-1 w-full" type="number" name="lama_usaha_tahun" :value="old('lama_usaha_tahun')" min="0" />
-                            <x-input-error :messages="$errors->get('lama_usaha_tahun')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="sektor_ekonomi_id" :value="__('Sektor Ekonomi')" />
-                            <select id="sektor_ekonomi_id" name="sektor_ekonomi_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-bpr-text-dark">
-                                <option value="">Pilih Sektor Ekonomi</option>
-                                @foreach($kategoriSektorEkonomi as $sektor)
-                                    <option value="{{ $sektor->id }}" {{ old('sektor_ekonomi_id') == $sektor->id ? 'selected' : '' }}>
-                                        {{ $sektor->nama_sektor }} (Risiko: {{ $sektor->tingkat_risiko }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            <x-input-error :messages="$errors->get('sektor_ekonomi_id')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="lokasi_usaha" :value="__('Lokasi Usaha')" />
-                            <x-text-input id="lokasi_usaha" class="block mt-1 w-full" type="text" name="lokasi_usaha" :value="old('lokasi_usaha')" />
-                            <x-input-error :messages="$errors->get('lokasi_usaha')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="riwayat_pinjaman_umkm" :value="__('Riwayat Pinjaman UMKM')" />
-                            <select id="riwayat_pinjaman_umkm" name="riwayat_pinjaman_umkm" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-bpr-text-dark">
-                                <option value="">Pilih Riwayat</option>
-                                <option value="Tidak Pernah" {{ old('riwayat_pinjaman_umkm') == 'Tidak Pernah' ? 'selected' : '' }}>Tidak Pernah</option>
-                                <option value="Pernah Menunggak" {{ old('riwayat_pinjaman_umkm') == 'Pernah Menunggak' ? 'selected' : '' }}>Pernah Menunggak</option>
-                                <option value="Pernah Macet" {{ old('riwayat_pinjaman_umkm') == 'Pernah Macet' ? 'selected' : '' }}>Pernah Macet</option>
-                            </select>
-                            <x-input-error :messages="$errors->get('riwayat_pinjaman_umkm')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="jenis_penggunaan_kredit" :value="__('Jenis Penggunaan Kredit')" />
-                            <select id="jenis_penggunaan_kredit" name="jenis_penggunaan_kredit" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-bpr-text-dark">
-                                <option value="">Pilih Penggunaan</option>
-                                <option value="Modal Kerja" {{ old('jenis_penggunaan_kredit') == 'Modal Kerja' ? 'selected' : '' }}>Modal Kerja</option>
-                                <option value="Investasi" {{ old('jenis_penggunaan_kredit') == 'Investasi' ? 'selected' : '' }}>Investasi</option>
-                            </select>
-                            <x-input-error :messages="$errors->get('jenis_penggunaan_kredit')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="jenis_jaminan" :value="__('Jenis Jaminan')" />
-                            <select id="jenis_jaminan" name="jenis_jaminan" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-bpr-text-dark">
-                                <option value="">Pilih Jaminan</option>
-                                <option value="Tanah/Bangunan" {{ old('jenis_jaminan') == 'Tanah/Bangunan' ? 'selected' : '' }}>Tanah/Bangunan</option>
-                                <option value="Barang Bergerak" {{ old('jenis_jaminan') == 'Barang Bergerak' ? 'selected' : '' }}>Barang Bergerak</option>
-                                <option value="Lainnya" {{ old('jenis_jaminan') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
-                            </select>
-                            <x-input-error :messages="$errors->get('jenis_jaminan')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="sumber_dana_pengembalian" :value="__('Sumber Dana Pengembalian')" />
-                            <select id="sumber_dana_pengembalian" name="sumber_dana_pengembalian" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-bpr-text-dark">
-                                <option value="">Pilih Sumber Dana</option>
-                                <option value="Dari Usaha Sendiri" {{ old('sumber_dana_pengembalian') == 'Dari Usaha Sendiri' ? 'selected' : '' }}>Dari Usaha Sendiri</option>
-                                <option value="Hibah/Pinjaman Lain" {{ old('sumber_dana_pengembalian') == 'Hibah/Pinjaman Lain' ? 'selected' : '' }}>Hibah/Pinjaman Lain</option>
-                            </select>
-                            <x-input-error :messages="$errors->get('sumber_dana_pengembalian')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="plafond_pengajuan" :value="__('Plafond Pengajuan')" />
-                            <x-text-input id="plafond_pengajuan" class="block mt-1 w-full" type="number" name="plafond_pengajuan" :value="old('plafond_pengajuan')" min="0" />
-                            <x-input-error :messages="$errors->get('plafond_pengajuan')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="jangka_waktu_kredit_bulan" :value="__('Jangka Waktu Kredit (Bulan)')" />
-                            <x-text-input id="jangka_waktu_kredit_bulan" class="block mt-1 w-full" type="number" name="jangka_waktu_kredit_bulan" :value="old('jangka_waktu_kredit_bulan')" min="1" />
-                            <x-input-error :messages="$errors->get('jangka_waktu_kredit_bulan')" class="mt-2" />
-                        </div>
-                    </div>
-
-                    <div x-show="jenisPemohon === 'pegawai'" class="bg-bpr-gray-light p-6 rounded-lg shadow-inner mb-6">
-                        <h4 class="text-xl font-bold mb-4 text-bpr-blue-medium">{{ __('Data Pegawai') }}</h4>
-
-                        <div class="mb-4">
-                            <x-input-label for="nama_pegawai" :value="__('Nama Pegawai')" />
-                            <x-text-input id="nama_pegawai" class="block mt-1 w-full" type="text" name="nama_pegawai" :value="old('nama_pegawai')" />
-                            <x-input-error :messages="$errors->get('nama_pegawai')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="usia" :value="__('Usia (Tahun)')" />
-                            <x-text-input id="usia" class="block mt-1 w-full" type="number" name="usia" :value="old('usia')" min="18" max="65" />
-                            <x-input-error :messages="$errors->get('usia')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="masa_kerja_tahun" :value="__('Masa Kerja (Tahun)')" />
-                            <x-text-input id="masa_kerja_tahun" class="block mt-1 w-full" type="number" name="masa_kerja_tahun" :value="old('masa_kerja_tahun')" min="0" />
-                            <x-input-error :messages="$errors->get('masa_kerja_tahun')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="golongan_jabatan_id" :value="__('Golongan / Jabatan')" />
-                            <select id="golongan_jabatan_id" name="golongan_jabatan_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-bpr-text-dark">
-                                <option value="">Pilih Golongan / Jabatan</option>
-                                @foreach($kategoriGolonganJabatan as $golongan)
-                                    <option value="{{ $golongan->id }}" {{ old('golongan_jabatan_id') == $golongan->id ? 'selected' : '' }}>
-                                        {{ $golongan->nama_golongan_jabatan }} (Penghasilan: {{ $golongan->kategori_penghasilan }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            <x-input-error :messages="$errors->get('golongan_jabatan_id')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="status_kepegawaian" :value="__('Status Kepegawaian')" />
-                            <select id="status_kepegawaian" name="status_kepegawaian" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-bpr-text-dark">
-                                <option value="">Pilih Status</option>
-                                <option value="Tetap" {{ old('status_kepegawaian') == 'Tetap' ? 'selected' : '' }}>Tetap</option>
-                                <option value="Kontrak" {{ old('status_kepegawaian') == 'Kontrak' ? 'selected' : '' }}>Kontrak</option>
-                            </select>
-                            <x-input-error :messages="$errors->get('status_kepegawaian')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="gaji_bulanan" :value="__('Gaji Bulanan')" />
-                            <x-text-input id="gaji_bulanan" class="block mt-1 w-full" type="number" name="gaji_bulanan" :value="old('gaji_bulanan')" min="0" />
-                            <x-input-error :messages="$errors->get('gaji_bulanan')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="jumlah_tanggungan" :value="__('Jumlah Tanggungan')" />
-                            <x-text-input id="jumlah_tanggungan" class="block mt-1 w-full" type="number" name="jumlah_tanggungan" :value="old('jumlah_tanggungan')" min="0" />
-                            <x-input-error :messages="$errors->get('jumlah_tanggungan')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="riwayat_kredit_sebelumnya_pegawai" :value="__('Riwayat Kredit Sebelumnya (Pegawai)')" />
-                            <select id="riwayat_kredit_sebelumnya_pegawai" name="riwayat_kredit_sebelumnya_pegawai" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-bpr-text-dark">
-                                <option value="">Pilih Riwayat</option>
-                                <option value="Tidak Pernah" {{ old('riwayat_kredit_sebelumnya_pegawai') == 'Tidak Pernah' ? 'selected' : '' }}>Tidak Pernah</option>
-                                <option value="Pernah Macet" {{ old('riwayat_kredit_sebelumnya_pegawai') == 'Pernah Macet' ? 'selected' : '' }}>Pernah Macet</option>
-                                <option value="Lain-lain" {{ old('riwayat_kredit_sebelumnya_pegawai') == 'Lain-lain' ? 'selected' : '' }}>Lain-lain</option>
-                            </select>
-                            <x-input-error :messages="$errors->get('riwayat_kredit_sebelumnya_pegawai')" class="mt-2" />
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-end mt-4">
-                        <x-primary-button class="ms-4">
-                            {{ __('Ajukan Aplikasi') }}
-                        </x-primary-button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
