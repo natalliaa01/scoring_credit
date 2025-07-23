@@ -7,30 +7,19 @@ use App\Models\DataPemohonUmkm;
 use App\Models\DataPemohonPegawai;
 use App\Models\KategoriSektorEkonomi;
 use App\Models\KategoriGolonganJabatan;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; // Pastikan ini ada
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-// Hapus baris ini: use Illuminate\Routing\Controller; // BARIS INI HARUS DIHAPUS
-// Hapus baris ini: use Illuminate\Foundation\Auth\Access\AuthorizesRequests; // BARIS INI JUGA HARUS DIHAPUS
 
-// Pastikan ini mengacu pada App\Http\Controllers\Controller
-// Ini adalah base controller Laravel yang sudah memiliki AuthorizesRequests trait.
-class AplikasiKreditController extends Controller // Pastikan ini extends App\Http\Controllers\Controller
+class AplikasiKreditController extends Controller
 {
-    // Hapus baris ini: use AuthorizesRequests; // BARIS INI JUGA HARUS DIHAPUS
-
     public function __construct()
     {
-        // Ini akan secara otomatis memanggil metode di AplikasiKreditPolicy
-        // seperti viewAny, view, create, update, delete berdasarkan mapping resource route
-        // Parameter kedua 'aplikasi_kredit' adalah nama parameter route wildcard.
         $this->authorizeResource(AplikasiKredit::class, 'aplikasi_kredit');
     }
 
-    public function index()
+    public function index(Request $request) // Tambahkan Request $request
     {
-        // Policy::viewAny() sudah memastikan user punya hak untuk melihat daftar.
-        // Sekarang kita filter data berdasarkan peran.
         $user = Auth::user();
         $aplikasiKreditQuery = AplikasiKredit::query();
 
@@ -41,8 +30,30 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
         // Untuk admin, direksi, dan kepala_bagian, tidak perlu filter tambahan,
         // karena mereka melihat semua (default query()).
 
+        // Logika Pencarian
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $aplikasiKreditQuery->where(function($query) use ($searchTerm) {
+                $query->where('id', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('nama_lengkap_pemohon', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('status_aplikasi', 'like', '%' . $searchTerm . '%')
+                      ->orWhereHas('pengaju', function ($q) use ($searchTerm) {
+                          $q->where('name', 'like', '%' . $searchTerm . '%');
+                      })
+                      ->orWhereHas('dataPemohonUmkm', function ($q) use ($searchTerm) {
+                          $q->where('nama_umkm', 'like', '%' . $searchTerm . '%')
+                            ->orWhere('lokasi_usaha', 'like', '%' . $searchTerm . '%');
+                      })
+                      ->orWhereHas('dataPemohonPegawai', function ($q) use ($searchTerm) {
+                          $q->where('nama_pegawai', 'like', '%' . $searchTerm . '%')
+                            ->orWhere('nama_perusahaan_kantor', 'like', '%' . $searchTerm . '%');
+                      });
+            });
+        }
+
+        // Mengurutkan berdasarkan ID secara menaik (asc)
         $aplikasiKredit = $aplikasiKreditQuery->with(['pengaju', 'dataPemohonUmkm.sektorEkonomi', 'dataPemohonPegawai.golonganJabatan'])
-                                              ->latest()
+                                              ->orderBy('id', 'asc') // Diperbaiki: Urutkan berdasarkan ID secara menaik
                                               ->get();
 
         return view('aplikasi-kredit.index', compact('aplikasiKredit'));
@@ -173,7 +184,7 @@ class AplikasiKreditController extends Controller // Pastikan ini extends App\Ht
                 'usia' => $validatedData['usia'] ?? null,
                 'masa_kerja_tahun' => $validatedData['masa_kerja_tahun'] ?? null,
                 'golongan_jabatan_id' => $validatedData['golongan_jabatan_id'] ?? null,
-                'status_kepegawaian' => $validatedData['status_kepegawaian'] ?? null,
+                'status_kepegawaian' => $validatedData['status_kepegawai an'] ?? null,
                 'gaji_bulanan' => $validatedData['gaji_bulanan'] ?? null,
                 'jumlah_tanggungan' => $validatedData['jumlah_tanggungan'] ?? null,
                 'riwayat_kredit_sebelumnya' => $validatedData['riwayat_kredit_sebelumnya_pegawai'] ?? null,
